@@ -2,6 +2,14 @@
 menu "Bluetooth device drivers"
 	depends on BT
 
+config BT_HCISMD
+	tristate "HCI SMD driver"
+	depends on MSM_SMD
+	help
+	  Bluetooth HCI driver for the Qualcomm WCNSS (Pronto/Riva) SMD
+	  transport (APPS_RIVA_BT_CMD / APPS_RIVA_BT_ACL channels).
+	  Enable with: echo 1 > /sys/module/hci_smd/parameters/hcismd_set
+
 config BT_HCIBTUSB
 	tristate "HCI USB driver"
 	depends on USB
