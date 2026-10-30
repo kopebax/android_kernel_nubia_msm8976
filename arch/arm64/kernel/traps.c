@@ -394,13 +394,13 @@ asmlinkage long do_ni_syscall(struct pt_regs *regs)
 	}
 #endif
 
-	if (show_unhandled_signals && printk_ratelimit()) {
-		pr_info("%s[%d]: syscall %d\n", current->comm,
-			task_pid_nr(current), (int)regs->syscallno);
-		dump_instr("", regs);
-		if (user_mode(regs))
-			__show_regs(regs);
-	}
+	/*
+	 * No register dump: current glibc probes newer syscalls (clone3,
+	 * close_range, rseq, ...) and falls back on ENOSYS, which flooded
+	 * the log on this 3.10 kernel. Mainline dropped the dump as well.
+	 */
+	pr_debug("%s[%d]: syscall %d\n", current->comm,
+		 task_pid_nr(current), (int)regs->syscallno);
 
 	return sys_ni_syscall();
 }
