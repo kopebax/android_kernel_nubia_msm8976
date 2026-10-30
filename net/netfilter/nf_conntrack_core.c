@@ -1643,6 +1643,8 @@ void nf_conntrack_init_end(void)
 #define DYING_NULLS_VAL		((1<<30)+1)
 #define TEMPLATE_NULLS_VAL	((1<<30)+2)
 
+static atomic_t nf_conntrack_slab_id = ATOMIC_INIT(0);
+
 int nf_conntrack_init_net(struct net *net)
 {
 	int ret;
@@ -1657,7 +1659,11 @@ int nf_conntrack_init_net(struct net *net)
 		goto err_stat;
 	}
 
-	net->ct.slabname = kasprintf(GFP_KERNEL, "nf_conntrack_%pK", net);
+	/* %pK prints zeros once kptr_restrict is set, so every new netns got the same
+	 * slab name and destroying one of them hit BUG() in sysfs_remove_one().
+	 * Use a counter: unique names without exposing kernel pointers. */
+	net->ct.slabname = kasprintf(GFP_KERNEL, "nf_conntrack_%u",
+				     (unsigned int)atomic_inc_return(&nf_conntrack_slab_id));
 	if (!net->ct.slabname) {
 		ret = -ENOMEM;
 		goto err_slabname;
